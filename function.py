@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 class FamilyTreeApp:
 
     def __init__(self, uri, user, password):
-        if test_connection(uri, user, password) is False:
-            raise ValueError("Connection failed.")
-        else:
-            print("Connection successful.")
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
  
     def close(self):
@@ -30,6 +26,8 @@ class FamilyTreeApp:
         app.create_person("Susan", "Jones", "1965-11-25", "Artist", description="Matriarch of the Jones family")
         app.create_person("Olivia", "Williams", "1993-07-18", "Veterinarian", description="Wife of Mike Doe")
         app.create_person("Thomas", "Miller", "1995-12-20", "Engineer", description="Husband of Sarah Doe")
+        app.create_person("Karl", "Washington", "1888-04-12", "Entrepreneur", description="Root of the Washington family")
+        app.create_person("Linda", "Washington", "1890-06-20", "Philanthropist", description="Root of the Washington family")
 
         # Establish relationships
         app.add_married_relationship("John", "Doe", "Jane", "Doe")
@@ -38,6 +36,7 @@ class FamilyTreeApp:
         app.add_married_relationship("Mark", "Smith", "Mary", "Smith")
         app.add_married_relationship("Jacob", "Brown", "Emma", "Brown")
         app.add_married_relationship("Peter", "Jones", "Susan", "Jones")
+        app.add_married_relationship("Karl", "Washington", "Linda", "Washington")
 
         app.add_child_of_relationship("Mike", "Doe", "John", "Doe", "Jane", "Doe")
         app.add_child_of_relationship("Sarah", "Doe", "John", "Doe", "Jane", "Doe")
@@ -46,6 +45,8 @@ class FamilyTreeApp:
         app.add_child_of_relationship("Mary", "Smith", "Peter", "Jones", "Susan", "Jones")
         app.add_child_of_relationship("Jacob", "Brown", "Peter", "Jones", "Susan", "Jones")
         app.add_child_of_relationship("Sophia", "Jones", "Peter", "Jones", "Susan", "Jones")
+        app.add_child_of_relationship("Susan", "Jones", "Karl", "Washington", "Linda", "Washington")
+        app.add_child_of_relationship("John", "Doe", "Karl", "Washington", "Linda", "Washington")
 
     def get_all_people(self):
             with self.driver.session() as session:
