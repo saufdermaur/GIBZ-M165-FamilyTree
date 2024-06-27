@@ -16,7 +16,6 @@ def main():
     if test_connection(connection_string, username, password) is False:
             raise ValueError("Connection failed.")
     else:
-        print("Connection successful.")
         app = FamilyTreeApp(connection_string, username, password)
         menu = Menu(app)
         menu.run()
