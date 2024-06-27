@@ -6,9 +6,27 @@ class FamilyTreeApp:
 
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
+        self.setup_schema()
  
     def close(self):
         self.driver.close()
+
+    def setup_schema(self):
+        with self.driver.session() as session:
+            # Define schema constraints
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.first_name IS UNIQUE")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.first_name)")
+
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.last_name IS UNIQUE")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.last_name)")
+
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.birthdate)")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.occupation)")
+
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT datetime(p.birthdate) IS NOT NULL")
+            
+            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.deathdate IS NULL OR datetime(p.deathdate) IS NOT NULL")
+
 
     def insert_example_data(app):
         # Create people
