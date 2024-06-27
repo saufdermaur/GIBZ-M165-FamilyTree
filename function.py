@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 class FamilyTreeApp:
 
     def __init__(self, uri, user, password):
+        if test_connection(uri, user, password) is False:
+            raise ValueError("Connection failed.")
+        else:
+            print("Connection successful.")
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
  
     def close(self):
@@ -146,3 +150,16 @@ def visualize_family_tree(tree_data):
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
     plt.show()    
     
+def test_connection(connection_string, username, password):
+    if not connection_string or not username or not password:
+        raise ValueError("One or more environment variables are missing.")
+
+    driver = GraphDatabase.driver(connection_string, auth=(username, password))
+    try:
+        with driver.session() as session:
+            result = session.run("RETURN 1")
+            print("Connection successful: ", result.single()[0])
+    except Exception as e:
+        print("Connection failed: ", e)
+    finally:
+        driver.close()
