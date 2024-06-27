@@ -23,6 +23,10 @@ class Menu:
         print("8: Add child relationship")
         print("9: Show family tree")
         print("10: Search people")
+        print("11: Get people over age")
+        print("12: Get person with most children")
+        print("13: Get siblings of a person")
+        print("14: Count total number of people")
         print("0: Exit")
 
     def run(self):
@@ -110,6 +114,37 @@ class Menu:
                     print(f"{record['first_name']} {record['last_name']} - "
                         f"{record['birthdate']} - {record['occupation']} - "
                         f"{record['deathdate']} - {record['description']}")
+            elif choice == '11':
+                self.clear_screen()
+                age = input("Enter age: ")
+                count, people = self.app.list_and_count_people_over_age(age)
+                print(f"Number of people over {age} years old: {count}")
+                for person in people:
+                    print(person)
+            elif choice == '12':
+                self.clear_screen()
+                persons_with_most_children = self.app.get_persons_with_most_children()
+                if persons_with_most_children:
+                    print("Persons with the most children:")
+                    for person, num_children in persons_with_most_children:
+                        print(f"{person} has {num_children} children")
+                else:
+                    print("No persons found with children.")
+            elif choice == '13':
+                self.clear_screen()
+                first_name = input("Enter first name: ")
+                last_name = input("Enter last name: ")
+                siblings = self.app.get_siblings(first_name, last_name)
+                if siblings:
+                    print(f"Siblings of {first_name} {last_name}:")
+                    for sibling in siblings:
+                        print(sibling)
+                else:
+                    print(f"No siblings found for {first_name} {last_name}.")
+            elif choice == '14':
+                self.clear_screen()
+                count = self.app.count_people()
+                print(f"Total number of people: {count}")
             elif choice == '0':
                 self.clear_screen()
                 print("Exiting application. Goodbye!")

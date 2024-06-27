@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 import networkx as nx
-from datetime import datetime
+from datetime import date, datetime
 import matplotlib.pyplot as plt
 
 class FamilyTreeApp:
@@ -52,8 +52,8 @@ class FamilyTreeApp:
         app.create_person("Susan", "Jones", "1965-11-25", "Artist", description="Matriarch of the Jones family")
         app.create_person("Olivia", "Williams", "1993-07-18", "Veterinarian", description="Wife of Mike Doe")
         app.create_person("Thomas", "Miller", "1995-12-20", "Engineer", description="Husband of Sarah Doe")
-        app.create_person("Karl", "Washington", "1888-04-12", "Entrepreneur", description="Root of the Washington family")
-        app.create_person("Linda", "Washington", "1890-06-20", "Philanthropist", description="Root of the Washington family")
+        app.create_person("Karl", "Washington", "1888-04-12", "Entrepreneur", deathdate="1980-05-22", description="Root of the Washington family")
+        app.create_person("Linda", "Washington", "1890-06-20", "Philanthropist", deathdate="1975-04-02" , description="Root of the Washington family")
 
         # Establish relationships
         app.add_married_relationship("John", "Doe", "Jane", "Doe")
@@ -191,14 +191,90 @@ class FamilyTreeApp:
             result = session.run(query, query_string=query_string)
             return list(result)
 
+    def list_and_count_people_over_age(self, age):
+        age = int(age)  # Convert age input to integer
         
+        today = date.today()
+        with self.driver.session() as session:
+            query = "MATCH (p:Person) RETURN p.first_name AS first_name, p.last_name AS last_name, p.birthdate AS birthdate, p.deathdate AS deathdate"
+            result = session.run(query)
+            
+            people_over_age = []
+            for record in result:
+                birthdate = record['birthdate']
+                if birthdate:
+                    birthdate = date(birthdate.year, birthdate.month, birthdate.day) 
+                else:
+                    continue 
+                
+                deathdate = record['deathdate']
+                if deathdate and deathdate != date(1, 1, 1):
+                    deathdate = date(deathdate.year, deathdate.month, deathdate.day)
+                else:
+                    deathdate = today
+                
+                age_at_death_or_today = (deathdate - birthdate).days // 365
+                if age_at_death_or_today > age:
+                    people_over_age.append(f"{record['first_name']} {record['last_name']} {age_at_death_or_today} years old")
+            
+            return len(people_over_age), people_over_age
+        
+    def get_persons_with_most_children(self):
+        with self.driver.session() as session:
+            query = (
+                "MATCH (child:Person)-[:CHILD_OF]->(parent:Person) "
+                "WITH parent, count(child) AS num_children "
+                "ORDER BY num_children DESC "
+                "RETURN parent.first_name + ' ' + parent.last_name AS person, num_children "
+            )
+            result = session.run(query)
+            
+            persons_with_most_children = []
+            max_children = 0
+            for record in result:
+                person = record['person']
+                num_children = record['num_children']
+                
+                if num_children > max_children:
+                    max_children = num_children
+                    persons_with_most_children = [(person, num_children)]
+                elif num_children == max_children:
+                    persons_with_most_children.append((person, num_children))
+            
+            return persons_with_most_children
+
+    def get_siblings(self, first_name, last_name):
+        with self.driver.session() as session:
+            query = (
+                "MATCH (person:Person {first_name: $first_name, last_name: $last_name})-[:CHILD_OF]->(parent:Person)<-[:CHILD_OF]-(sibling:Person) "
+                "WHERE (person.first_name <> sibling.first_name OR person.last_name <> sibling.last_name) "
+                "RETURN DISTINCT sibling.first_name + ' ' + sibling.last_name AS sibling_name"
+            )
+            result = session.run(query, first_name=first_name, last_name=last_name)
+            
+            siblings = []
+            for record in result:
+                siblings.append(record['sibling_name'])
+            
+            return siblings
+    
+    def count_people(self):
+        with self.driver.session() as session:
+            query = "MATCH (p:Person) RETURN count(p) AS num_people"
+            result = session.run(query)
+            record = result.single()
+            if record:
+                return record['num_people']
+            else:
+                return 0
+
 def visualize_family_tree(tree_data):
     G = nx.Graph()
 
     for record in tree_data:
         G.add_edge(record['person1'], record['person2'], relationship=record['relationship'])
 
-    pos = nx.spring_layout(G, k=0.7)
+    pos = nx.spring_layout(G, k=0.9)
     edge_labels = nx.get_edge_attributes(G, 'relationship')
     
     plt.figure(figsize=(10, 8))
