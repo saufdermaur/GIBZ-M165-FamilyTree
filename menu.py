@@ -22,6 +22,7 @@ class Menu:
         print("7: Add married relationship")
         print("8: Add child relationship")
         print("9: Show family tree")
+        print("10: Search people")
         print("0: Exit")
 
     def run(self):
@@ -102,6 +103,13 @@ class Menu:
                 print("Displaying family tree...\n")
                 tree_data = self.app.get_family_tree()
                 visualize_family_tree(tree_data)
+            elif choice == '10':
+                self.clear_screen()
+                result = self.app.search_people(input("Enter search term: "))
+                for record in result:
+                    print(f"{record['first_name']} {record['last_name']} - "
+                        f"{record['birthdate']} - {record['occupation']} - "
+                        f"{record['deathdate']} - {record['description']}")
             elif choice == '0':
                 self.clear_screen()
                 print("Exiting application. Goodbye!")

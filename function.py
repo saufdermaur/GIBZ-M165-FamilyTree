@@ -1,5 +1,6 @@
 from neo4j import GraphDatabase
 import networkx as nx
+from datetime import datetime
 import matplotlib.pyplot as plt
 
 class FamilyTreeApp:
@@ -13,19 +14,26 @@ class FamilyTreeApp:
 
     def setup_schema(self):
         with self.driver.session() as session:
-            # Define schema constraints
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.first_name IS UNIQUE")
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.first_name)")
+            # Combination of first name and last name: unique
+            session.run("CREATE CONSTRAINT constraint_unique_person_name IF NOT EXISTS FOR (p:Person) REQUIRE (p.first_name, p.last_name) IS NODE KEY")
+            # First name: not null, string format
+            session.run("CREATE CONSTRAINT constraint_for_person_first_name IF NOT EXISTS FOR (p:Person) REQUIRE p.first_name IS :: STRING")
+            # Last name: not null, string format
+            session.run("CREATE CONSTRAINT constraint_for_person_last_name IF NOT EXISTS FOR (p:Person) REQUIRE p.last_name IS :: STRING")
+            # Birthdate: not null, date format
+            session.run("CREATE CONSTRAINT constraint_for_person_birthdate IF NOT EXISTS FOR (p:Person) REQUIRE p.birthdate IS :: DATE")
+            # Occupation: string format
+            session.run("CREATE CONSTRAINT constraint_for_person_occupation IF NOT EXISTS FOR (p:Person) REQUIRE p.occupation IS :: STRING")
+            # Deathdate: date format
+            session.run("CREATE CONSTRAINT constraint_for_person_deathdate IF NOT EXISTS FOR (p:Person) REQUIRE p.deathdate IS :: DATE")
 
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.last_name IS UNIQUE")
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.last_name)")
-
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.birthdate)")
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT exists(p.occupation)")
-
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT datetime(p.birthdate) IS NOT NULL")
-            
-            session.run("CREATE CONSTRAINT IF NOT EXISTS ON (p:Person) ASSERT p.deathdate IS NULL OR datetime(p.deathdate) IS NOT NULL")
+            # Create Index on properties
+            session.run("CREATE INDEX index_for_person_first_name IF NOT EXISTS FOR (p:Person) ON (p.first_name)")
+            session.run("CREATE INDEX index_for_person_last_name IF NOT EXISTS FOR (p:Person) ON (p.last_name)")
+            session.run("CREATE INDEX index_for_person_birthdate IF NOT EXISTS FOR (p:Person) ON (p.birthdate)")
+            session.run("CREATE INDEX index_for_person_occupation IF NOT EXISTS FOR (p:Person) ON (p.occupation)")
+            session.run("CREATE INDEX index_for_person_deathdate IF NOT EXISTS FOR (p:Person) ON (p.deathdate)")
+            session.run("CREATE INDEX index_for_person_description IF NOT EXISTS FOR (p:Person) ON (p.description)") 
 
 
     def insert_example_data(app):
@@ -76,6 +84,12 @@ class FamilyTreeApp:
                         f"{record['p']['deathdate']} - {record['p']['description']}")
 
     def create_person(self, first_name, last_name, birthdate, occupation, deathdate=None, description=None):
+        birthdate = datetime.strptime(birthdate, "%Y-%m-%d").date()
+        if deathdate:
+            deathdate = datetime.strptime(deathdate, "%Y-%m-%d").date()
+        else:
+            deathdate = datetime(1, 1, 1).date()
+
         with self.driver.session() as session:
             query = (
                 "CREATE (p:Person {first_name: $first_name, last_name: $last_name, birthdate: $birthdate, "
@@ -85,6 +99,12 @@ class FamilyTreeApp:
                         occupation=occupation, deathdate=deathdate, description=description)
 
     def update_person(self, first_name, last_name, birthdate=None, occupation=None, deathdate=None, description=None):
+        birthdate = datetime.strptime(birthdate, "%Y-%m-%d").date()
+        if deathdate:
+            deathdate = datetime.strptime(deathdate, "%Y-%m-%d").date()
+        else:
+            deathdate = datetime(1, 1, 1).date()
+
         with self.driver.session() as session:
             query = (
                 "MATCH (p:Person {first_name: $first_name, last_name: $last_name}) "
@@ -154,6 +174,23 @@ class FamilyTreeApp:
             )
             result = session.run(query)
             return list(result)
+        
+    def search_people(self, query_string):
+        with self.driver.session() as session:
+            query = (
+                "MATCH (p:Person) WHERE p.description CONTAINS $query_string "
+                "OR p.first_name CONTAINS $query_string "
+                "OR p.last_name CONTAINS $query_string "
+                "OR p.birthdate CONTAINS $query_string "
+                "OR p.occupation CONTAINS $query_string "
+                "OR p.deathdate CONTAINS $query_string "
+                "RETURN p.first_name AS first_name, p.last_name AS last_name, "
+                "p.birthdate AS birthdate, p.occupation AS occupation, "
+                "p.deathdate AS deathdate, p.description AS description"
+            )
+            result = session.run(query, query_string=query_string)
+            return list(result)
+
         
 def visualize_family_tree(tree_data):
     G = nx.Graph()
