@@ -45,25 +45,26 @@ class FamilyTreeApp:
         except Exception as e:
             print(f"Error setting up schema: {e}")
 
+
     def insert_example_data(self):
         try:
-            # Create people with example data                                                                                           
-            self.create_person("John", "Doe", "1950-07-15", "Retired Engineer", description="Patriarch of the Doe family")
-            self.create_person("Jane", "Doe", "1955-09-20", "Homemaker", description="Matriarch of the Doe family")
-            self.create_person("Mike", "Doe", "1975-03-10", "Doctor", description="Eldest son of John and Jane Doe")
-            self.create_person("Sarah", "Doe", "1978-06-25", "Lawyer", description="Daughter of John and Jane Doe")
-            self.create_person("Emily", "Doe", "1980-11-05", "Teacher", description="Youngest daughter of John and Jane Doe")
-            self.create_person("Mark", "Smith", "1988-04-12", "Architect", description="Son of Robert and Mary Smith")
-            self.create_person("Mary", "Smith", "1990-06-20", "Nurse", description="Wife of Mark Smith")
-            self.create_person("Jacob", "Brown", "1992-09-15", "Software Developer", description="Son of William and Emma Brown")
-            self.create_person("Emma", "Brown", "1994-11-30", "Accountant", description="Wife of Jacob Brown")
-            self.create_person("Sophia", "Jones", "1985-03-22", "Professor", description="Daughter of Peter and Susan Jones")
-            self.create_person("Peter", "Jones", "1960-08-10", "Lawyer", description="Patriarch of the Jones family")
-            self.create_person("Susan", "Jones", "1965-11-25", "Artist", description="Matriarch of the Jones family")
-            self.create_person("Olivia", "Williams", "1993-07-18", "Veterinarian", description="Wife of Mike Doe")
-            self.create_person("Thomas", "Miller", "1995-12-20", "Engineer", description="Husband of Sarah Doe")
-            self.create_person("Karl", "Washington", "1888-04-12", "Entrepreneur", deathdate="1980-05-22", description="Root of the Washington family")
-            self.create_person("Linda", "Washington", "1890-06-20", "Philanthropist", deathdate="1975-04-02" , description="Root of the Washington family")
+            # Create people with example data
+            self.create_person("John", "Doe", datetime.strptime("1950-07-15", "%Y-%m-%d").date(), "Retired Engineer", description="Patriarch of the Doe family")
+            self.create_person("Jane", "Doe", datetime.strptime("1955-09-20", "%Y-%m-%d").date(), "Homemaker", description="Matriarch of the Doe family")
+            self.create_person("Mike", "Doe", datetime.strptime("1975-03-10", "%Y-%m-%d").date(), "Doctor", description="Eldest son of John and Jane Doe")
+            self.create_person("Sarah", "Doe", datetime.strptime("1978-06-25", "%Y-%m-%d").date(), "Lawyer", description="Daughter of John and Jane Doe")
+            self.create_person("Emily", "Doe", datetime.strptime("1980-11-05", "%Y-%m-%d").date(), "Teacher", description="Youngest daughter of John and Jane Doe")
+            self.create_person("Mark", "Smith", datetime.strptime("1988-04-12", "%Y-%m-%d").date(), "Architect", description="Son of Robert and Mary Smith")
+            self.create_person("Mary", "Smith", datetime.strptime("1990-06-20", "%Y-%m-%d").date(), "Nurse", description="Wife of Mark Smith")
+            self.create_person("Jacob", "Brown", datetime.strptime("1992-09-15", "%Y-%m-%d").date(), "Software Developer", description="Son of William and Emma Brown")
+            self.create_person("Emma", "Brown", datetime.strptime("1994-11-30", "%Y-%m-%d").date(), "Accountant", description="Wife of Jacob Brown")
+            self.create_person("Sophia", "Jones", datetime.strptime("1985-03-22", "%Y-%m-%d").date(), "Professor", description="Daughter of Peter and Susan Jones")
+            self.create_person("Peter", "Jones", datetime.strptime("1960-08-10", "%Y-%m-%d").date(), "Lawyer", description="Patriarch of the Jones family")
+            self.create_person("Susan", "Jones", datetime.strptime("1965-11-25", "%Y-%m-%d").date(), "Artist", description="Matriarch of the Jones family")
+            self.create_person("Olivia", "Williams", datetime.strptime("1993-07-18", "%Y-%m-%d").date(), "Veterinarian", description="Wife of Mike Doe")
+            self.create_person("Thomas", "Miller", datetime.strptime("1995-12-20", "%Y-%m-%d").date(), "Engineer", description="Husband of Sarah Doe")
+            self.create_person("Karl", "Washington", datetime.strptime("1888-04-12", "%Y-%m-%d").date(), "Entrepreneur", deathdate=datetime.strptime("1980-05-22", "%Y-%m-%d").date(), description="Root of the Washington family")
+            self.create_person("Linda", "Washington", datetime.strptime("1890-06-20", "%Y-%m-%d").date(), "Philanthropist", deathdate=datetime.strptime("1975-04-02", "%Y-%m-%d").date(), description="Root of the Washington family")
 
             # Establish relationships
             self.add_married_relationship("John", "Doe", "Jane", "Doe")
@@ -83,7 +84,6 @@ class FamilyTreeApp:
             self.add_child_of_relationship("Sophia", "Jones", "Peter", "Jones", "Susan", "Jones")
             self.add_child_of_relationship("Susan", "Jones", "Karl", "Washington", "Linda", "Washington")
             self.add_child_of_relationship("John", "Doe", "Karl", "Washington", "Linda", "Washington")
-            pass
         except Exception as e:
             print(f"Failed to insert example data: {e}")
 
