@@ -10,6 +10,26 @@ Die Family Tree Management-Anwendung bietet eine benutzerfreundliche CLI zur Ver
 ![Demodaten](/demoData.png)
 *Demodaten*
 
+## Getting started
+
+1. Create a `.env` file in the project directory with the following content:
+```
+CONNECTION_STRING_DB="<yourConnectionString>"
+USERNAME_DB="<yourUsername>"
+PASSWORD_DB="<yourPassword>"`
+```
+2. Set up a virtual environment and install the required dependencies:
+```
+pip install dotenv
+pip install neo4j
+pip install networkx
+pip install matplotlib
+```
+3. Run `main.py` to get started:
+```
+python main.py
+```
+
 ## User Stories
 
 - Als Nutzer möchte ich Beispiel-Daten in die Anwendung einfügen können, um schnell mit der Arbeit beginnen zu können.
